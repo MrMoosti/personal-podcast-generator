@@ -1,0 +1,38 @@
+services:
+  kokoro:
+    image: ghcr.io/remsky/kokoro-fastapi-gpu:latest
+    ports:
+      - "8880:8880"
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+    restart: unless-stopped
+
+  orchestrator:
+    build: ./orchestrator
+    ports:
+      - "8000:8000"
+    environment:
+      - KOKORO_URL=http://kokoro:8880
+      - CLAUDE_MODEL=sonnet
+      - DATA_DIR=/data
+    volumes:
+      - ./data:/data
+      - ${USERPROFILE}/.claude:/root/.claude:ro
+    depends_on:
+      - kokoro
+    restart: unless-stopped
+
+  web:
+    build: ./web
+    ports:
+      - "3000:3000"
+    environment:
+      - NEXT_PUBLIC_API_URL=http://localhost:8000
+    depends_on:
+      - orchestrator
+    restart: unless-stopped
