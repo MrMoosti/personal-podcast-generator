@@ -2,14 +2,21 @@ from pydantic import BaseModel, Field
 from typing import Literal
 from datetime import datetime
 
-Speaker = Literal["host", "expert"]
+# Speaker is now a free string ("host", "expert_0", "expert_1", …)
+Speaker = str
 Segment = Literal["intro", "main", "qa", "outro"]
 JobStatus = Literal["pending", "researching", "writing", "synthesizing", "assembling", "done", "error"]
+
+
+class VoiceConfig(BaseModel):
+    host: str = "am_michael"
+    experts: list[str] = ["bf_emma"]   # 1–3 expert voices
 
 
 class GenerationRequest(BaseModel):
     topic: str = Field(min_length=3, max_length=300)
     duration_minutes: Literal[5, 10, 15, 20]
+    voices: VoiceConfig = VoiceConfig()
 
 
 class ScriptLine(BaseModel):

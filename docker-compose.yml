@@ -23,16 +23,18 @@ services:
     volumes:
       - ./data:/data
       - ${USERPROFILE}/.claude:/root/.claude:ro
+      - ${USERPROFILE}/.claude.json:/root/.claude.json:ro
     depends_on:
       - kokoro
     restart: unless-stopped
 
   web:
-    build: ./web
+    build:
+      context: ./web
+      args:
+        - NEXT_PUBLIC_API_URL=http://localhost:8000
     ports:
       - "3000:3000"
-    environment:
-      - NEXT_PUBLIC_API_URL=http://localhost:8000
     depends_on:
       - orchestrator
     restart: unless-stopped
